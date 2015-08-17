@@ -58,6 +58,10 @@ Ltac solve_neq0 :=
     rewrite eqCn0 //=
   | |- context[_ ^+ _ == 0] =>
     rewrite GRing.expf_eq0 //=
+  | |- context[_ ^-1 == 0] =>
+    rewrite GRing.invr_eq0 //=
+  | |- context[- _ == 0] =>
+    rewrite GRing.oppr_eq0 //=
   end.
 
 Lemma cubic (a b c d x : algC) :
@@ -126,4 +130,32 @@ have ->: 3%:R * v * v' = - p.
   rewrite /v' GRing.mulrC GRing.mulNr; apply: f_equal.
   by rewrite GRing.mulfVK //; solve_neq0.
 rewrite GRing.mulNr GRing.subrK.
+apply/eqP/existsP=> [ev|].
+  have /eqP: 1 * (v ^+ 3) ^+2 + q * v ^+ 3 - p ^+ 3 / 27%:R = 0.
+    apply: (@GRing.mulfI _ (v ^- 3)); solve_neq0.
+    rewrite GRing.mulr0 -{}ev /v'; ssfield; solve_neq0.
+  rewrite quadratic; last exact: GRing.oner_neq0.
+  rewrite GRing.mulr1 GRing.mulrN GRing.opprK GRing.mulr1 2!inE => ev'.
+  wlog ev: v @v' vn0 {ev ev'} /
+           v ^+ 3 = (- q + sqrtC (q ^+ 2 + 4%:R * (p ^+ 3 / 27%:R))) / 2%:R.
+    case/orP: ev' => [] /eqP ev'; first by eauto.
+    move/(_ v'); rewrite (_ : - (p / (3%:R * v')) = v); last first.
+      rewrite /v'; ssfield; solve_neq0.
+    rewrite /= (GRing.addrC v' v); apply.
+      by rewrite /v' GRing.oppr_eq0; solve_neq0; rewrite negb_or pn0.
+    have ->: v' ^+ 3 = v ^+ 3 + v' ^+ 3 + q - v ^+ 3 - q by ssring.
+    by rewrite ev ev'; ssfield; solve_neq0.
+  have {ev} ev: v ^+ 3 = u ^+ 3.
+    rewrite ev /u rootCK // GRing.mulrDl; congr GRing.add.
+    rewrite {1}(_ : q ^+ 2 = 4%:R * (q ^+ 2 / 4%:R)); last first.
+      by ssfield; solve_neq0.
+    rewrite -GRing.mulrDr rootCMl; last by rewrite -[0]/0%:R leC_nat.
+    rewrite -(@sqrCK 2%:R); last by rewrite -[0]/0%:R leC_nat.
+    by rewrite -GRing.natrX -[2 ^ 2]/4; ssfield; rewrite sqrtC_eq0; solve_neq0.
+  have un0 : u != 0.
+    suff : u ^+ 3 != 0 by rewrite GRing.expf_eq0.
+    by rewrite -ev GRing.expf_eq0.
+  have {ev} /(prim_rootP prim_s) [i ev] : (v / u) ^+ 3 = 1.
+    by rewrite GRing.expr_div_n -ev GRing.divff //; solve_neq0.
+  by exists i; rewrite -ev -[3%:R * _ * _]GRing.mulrA GRing.mulfVK //.
 Qed.
