@@ -199,3 +199,5 @@ rewrite /u1 GRing.exprMn_comm; last exact: GRing.mulrC.
 rewrite s3 GRing.mul1r -eu.
 by ssfield; solve_neq0.
 Qed.
+
+End Cubic.
