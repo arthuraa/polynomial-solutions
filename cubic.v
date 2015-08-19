@@ -110,27 +110,28 @@ have [-> {p u}|pn0] := altP (p =P 0).
   apply/eqP/existsP; first by move/(prim_rootP prim_s)=> [i ->]; eauto.
   case=> [i /eqP ->].
   by rewrite GRing.exprAC (prim_expr_order prim_s) GRing.expr1n.
-have [v vn0 -> {x}]: exists2 v, v != 0 & x = v - p / (3%:R * v).
-  pose v := (x + sqrtC (x ^+ 2 + 4%:R * p / 3%:R)) / 2%:R.
-  have := quadratic 1 (- x) (- p / 3%:R) v (GRing.oner_neq0 _).
-  rewrite /= GRing.mul1r inE GRing.opprK GRing.sqrrN !GRing.mulr1.
-  rewrite GRing.mulrA [in RHS]/v GRing.mulrN !GRing.mulNr GRing.opprK eqxx /=.
-  move: v => v; have [->|vn0] := eqVneq v 0.
-    rewrite GRing.expr0n GRing.mulr0 /= GRing.add0r GRing.addrC GRing.subr0.
-    rewrite GRing.oppr_eq0 GRing.mulf_eq0 (negbTE pn0) /= GRing.invr_eq0.
-    by rewrite eqCn0.
-  move=> /eqP Pv; exists v=> //.
-  apply: (GRing.mulIf vn0).
-  apply: (GRing.addIr (- (x * v))).
-  rewrite GRing.subrr -Pv.
-  ssfield; solve_neq0.
-set v' := - (p / (3%:R * v)).
-have ->: (v + v') ^+ 3 = v ^+ 3 + v' ^+ 3 + 3%:R * v * v' * (v + v') by ssring.
-have ->: 3%:R * v * v' = - p.
-  rewrite /v' GRing.mulrC GRing.mulNr; apply: f_equal.
-  by rewrite GRing.mulfVK //; solve_neq0.
-rewrite GRing.mulNr GRing.subrK.
-apply/eqP/existsP=> [ev|].
+apply/eqP/existsP.
+  have [v vn0 -> {x}]: exists2 v, v != 0 & x = v - p / (3%:R * v).
+    pose v := (x + sqrtC (x ^+ 2 + 4%:R * p / 3%:R)) / 2%:R.
+    have := quadratic 1 (- x) (- p / 3%:R) v (GRing.oner_neq0 _).
+    rewrite /= GRing.mul1r inE GRing.opprK GRing.sqrrN !GRing.mulr1.
+    rewrite GRing.mulrA [in RHS]/v GRing.mulrN !GRing.mulNr GRing.opprK eqxx.
+    move: v => v /=; have [->|vn0] := eqVneq v 0.
+      rewrite GRing.expr0n GRing.mulr0 /= GRing.add0r GRing.addrC GRing.subr0.
+      rewrite GRing.oppr_eq0 GRing.mulf_eq0 (negbTE pn0) /= GRing.invr_eq0.
+      by rewrite eqCn0.
+    move=> /eqP Pv; exists v=> //.
+    apply: (GRing.mulIf vn0).
+    apply: (GRing.addIr (- (x * v))).
+    rewrite GRing.subrr -Pv.
+    ssfield; solve_neq0.
+  set v' := - (p / (3%:R * v)).
+  have ->: (v + v') ^+ 3 = v ^+ 3 + v' ^+ 3 + 3%:R * v * v' * (v + v').
+    by ssring.
+  have ->: 3%:R * v * v' = - p.
+    rewrite /v' GRing.mulrC GRing.mulNr; apply: f_equal.
+    by rewrite GRing.mulfVK //; solve_neq0.
+  rewrite GRing.mulNr GRing.subrK => ev.
   have /eqP: 1 * (v ^+ 3) ^+2 + q * v ^+ 3 - p ^+ 3 / 27%:R = 0.
     apply: (@GRing.mulfI _ (v ^- 3)); solve_neq0.
     rewrite GRing.mulr0 -{}ev /v'; ssfield; solve_neq0.
@@ -158,4 +159,43 @@ apply/eqP/existsP=> [ev|].
   have {ev} /(prim_rootP prim_s) [i ev] : (v / u) ^+ 3 = 1.
     by rewrite GRing.expr_div_n -ev GRing.divff //; solve_neq0.
   by exists i; rewrite -ev -[3%:R * _ * _]GRing.mulrA GRing.mulfVK //.
+case=> [i /eqP -> {x}].
+have eu : u ^+ 6 + q * u ^+ 3 - p ^+ 3 / 27%:R = 0.
+  rewrite -(GRing.mul1r (u ^+ 6)) -{1}[6]/(3 * 2)%N GRing.exprM.
+  apply/eqP; rewrite quadratic ?GRing.oner_neq0 //.
+  rewrite inE; apply/orP; left; apply/eqP.
+  rewrite !GRing.mulr1 GRing.mulrN GRing.opprK {}/u.
+  rewrite rootCK // GRing.mulrDl; congr GRing.add.
+  rewrite {2}(_ : q ^+ 2 = 4%:R * (q ^+ 2 / 4%:R)); last first.
+    by ssfield; solve_neq0.
+  rewrite -GRing.mulrDr rootCMl; last by rewrite -[0]/0%:R leC_nat.
+  rewrite -(@sqrCK 2%:R); last by rewrite -[0]/0%:R leC_nat.
+  by rewrite -GRing.natrX -[2 ^ 2]/4; ssfield; rewrite sqrtC_eq0; solve_neq0.
+have un0 : u != 0.
+  move/eqP: eu; apply: contraTN => /eqP ->.
+  rewrite !GRing.expr0n /= GRing.add0r GRing.mulr0 GRing.add0r.
+  by solve_neq0; rewrite negb_or pn0.
+rewrite -GRing.mulrA; set u1 := s ^+ i * u.
+have s3 : s ^+ i ^+ 3 = 1.
+  rewrite -GRing.exprM mulnC GRing.exprM (prim_expr_order prim_s).
+  by rewrite GRing.expr1n.
+have sin0 : s ^+ i != 0.
+  by move: (GRing.oner_neq0 algCring); rewrite -s3 GRing.expf_eq0.
+have u1n0 : u1 != 0 by rewrite /u1 GRing.mulf_eq0 negb_or sin0.
+set u2 := - (p / (3%:R * u1)).
+have ->: (u1 + u2) ^+ 3 = u1 ^+ 3 + u2 ^+ 3 + 3%:R * u1 * u2 * (u1 + u2).
+  by move: (u1) (u2)=> u1' u2'; ssring.
+have ->: 3%:R * u1 * u2 = - p.
+  rewrite /u2 GRing.mulrC GRing.mulNr; apply: f_equal.
+  by rewrite GRing.mulfVK //; solve_neq0.
+rewrite GRing.mulNr GRing.subrK.
+apply: (GRing.mulfI (_ : u1 ^+ 3 != 0)); first by rewrite /u1; solve_neq0.
+rewrite GRing.mulr0 2!GRing.mulrDr -GRing.expr2.
+rewrite -GRing.exprMn_comm; last exact: GRing.mulrC.
+have -> : u1 * u2 = - (p / 3%:R).
+  rewrite /u2; move: (u1) u1n0=> u1' u1n0'.
+  ssfield; solve_neq0.
+rewrite /u1 GRing.exprMn_comm; last exact: GRing.mulrC.
+rewrite s3 GRing.mul1r -eu.
+by ssfield; solve_neq0.
 Qed.

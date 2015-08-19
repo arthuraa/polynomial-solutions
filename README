@@ -1,0 +1,5 @@
+Solutions for polynomial equations in terms of radicals.
+
+The ssrring.v file was taken from
+https://github.com/strub/elliptic-curves-ssr, and is the work of
+Pierre-Yves Strub.
